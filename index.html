@@ -1,0 +1,2358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow Pro · Modern Productivity</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* ===================== RESET & VARIABLES ===================== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #f5f7fb;
+      --bg-elevated: #ffffff;
+      --bg-soft: #f8fafc;
+      --bg-hover: #f1f5f9;
+      --bg-input: #f8fafc;
+
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-soft: #94a3b8;
+
+      --border: #e8edf3;
+      --border-strong: #d8e0ea;
+
+      --brand: #6366f1;
+      --brand-soft: #eef2ff;
+      --brand-hover: #4f46e5;
+      --brand-glow: rgba(99, 102, 241, 0.25);
+
+      --success: #10b981;
+      --success-soft: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-soft: #fffbeb;
+      --danger: #ef4444;
+      --danger-soft: #fef2f2;
+      --info: #0ea5e9;
+      --info-soft: #f0f9ff;
+      --purple: #a855f7;
+      --purple-soft: #faf5ff;
+
+      --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.03);
+      --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04);
+      --shadow-xl: 0 24px 48px rgba(15, 23, 42, 0.12);
+
+      --radius-xs: 6px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-pill: 999px;
+
+      --sidebar-w: 260px;
+      --header-h: 68px;
+      --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark {
+      --bg: #0b0f19;
+      --bg-elevated: #131a2a;
+      --bg-soft: #1a2234;
+      --bg-hover: #1e2739;
+      --bg-input: #1a2234;
+
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-soft: #64748b;
+
+      --border: #232d43;
+      --border-strong: #2e3a52;
+
+      --brand: #818cf8;
+      --brand-soft: #1e2745;
+      --brand-hover: #6366f1;
+
+      --success-soft: #0f2a22;
+      --warning-soft: #2a2412;
+      --danger-soft: #2a1414;
+      --info-soft: #0c2130;
+      --purple-soft: #241a35;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.25s, color 0.25s;
+    }
+
+    button, input, select, textarea { font-family: inherit; }
+    button { cursor: pointer; border: none; background: none; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-soft); }
+
+    /* ===================== LAYOUT ===================== */
+    .app { display: flex; min-height: 100vh; }
+
+    /* ===================== SIDEBAR ===================== */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-elevated);
+      border-right: 1px solid var(--border);
+      position: fixed; top: 0; bottom: 0; left: 0;
+      z-index: 60;
+      display: flex; flex-direction: column;
+      padding: 22px 14px;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 11px;
+      padding: 0 8px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-logo {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--brand), #8b5cf6);
+      display: grid; place-items: center;
+      color: #fff; font-size: 16px;
+      box-shadow: 0 6px 16px var(--brand-glow);
+    }
+
+    .brand-name { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+    .brand-name span { color: var(--brand); }
+
+    .nav {
+      flex: 1; padding-top: 18px;
+      display: flex; flex-direction: column;
+      gap: 2px; overflow-y: auto;
+    }
+
+    .nav-label {
+      font-size: 10.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-soft);
+      padding: 14px 12px 6px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      font-size: 13.5px; font-weight: 500;
+      transition: all var(--transition);
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+    }
+
+    .nav-item i { width: 18px; text-align: center; font-size: 14px; }
+    .nav-item:hover { background: var(--bg-hover); color: var(--text); }
+    .nav-item.active { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+    .nav-item.active::before {
+      content: ''; position: absolute;
+      left: -14px; top: 50%;
+      transform: translateY(-50%);
+      width: 3px; height: 20px;
+      background: var(--brand);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      font-size: 10.5px; font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--brand);
+      color: #fff;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .nav-badge.danger { background: var(--danger); }
+    .nav-badge.success { background: var(--success); }
+
+    .sidebar-user {
+      border-top: 1px solid var(--border);
+      padding: 14px 4px 0;
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      transition: background var(--transition);
+    }
+    .sidebar-user:hover { background: var(--bg-hover); padding: 14px 8px 8px; }
+
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand), #8b5cf6);
+      display: grid; place-items: center;
+      color: #fff; font-weight: 600; font-size: 13px;
+      flex-shrink: 0;
+    }
+    .avatar.lg { width: 64px; height: 64px; font-size: 22px; }
+    .avatar.sm { width: 28px; height: 28px; font-size: 11px; }
+
+    .user-meta { overflow: hidden; flex: 1; }
+    .user-meta strong { font-size: 13px; font-weight: 600; display: block; }
+    .user-meta small { font-size: 11.5px; color: var(--text-soft); }
+
+    /* ===================== MAIN ===================== */
+    .main {
+      flex: 1; margin-left: var(--sidebar-w);
+      min-width: 0; display: flex; flex-direction: column;
+    }
+
+    .header {
+      height: var(--header-h);
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+      position: sticky; top: 0; z-index: 40;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+
+    .menu-btn {
+      display: none; width: 38px; height: 38px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted); font-size: 16px;
+      align-items: center; justify-content: center;
+    }
+    .menu-btn:hover { background: var(--bg-hover); color: var(--text); }
+
+    .page-title { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+    .page-subtitle { font-size: 12px; color: var(--text-soft); margin-top: 1px; }
+
+    .search { position: relative; flex: 1; max-width: 380px; }
+    .search i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-soft); font-size: 13px; }
+    .search input {
+      width: 100%; padding: 9px 14px 9px 38px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      font-size: 13px; color: var(--text); outline: none;
+      transition: all var(--transition);
+    }
+    .search input:focus { border-color: var(--brand); background: var(--bg-elevated); box-shadow: 0 0 0 3px var(--brand-soft); }
+    .search input::placeholder { color: var(--text-soft); }
+
+    .header-right { display: flex; align-items: center; gap: 6px; }
+
+    .icon-btn {
+      width: 38px; height: 38px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted); font-size: 14px;
+      display: grid; place-items: center;
+      transition: all var(--transition);
+      position: relative;
+    }
+    .icon-btn:hover { background: var(--bg-hover); color: var(--text); }
+    .icon-btn.active { background: var(--brand-soft); color: var(--brand); }
+
+    .icon-btn .dot {
+      position: absolute; top: 8px; right: 8px;
+      width: 8px; height: 8px;
+      background: var(--danger); border-radius: 50%;
+      border: 2px solid var(--bg-elevated);
+    }
+    .icon-btn .count {
+      position: absolute; top: 4px; right: 4px;
+      min-width: 16px; height: 16px;
+      padding: 0 4px;
+      background: var(--danger); color: #fff;
+      font-size: 9.5px; font-weight: 700;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      border: 2px solid var(--bg-elevated);
+    }
+
+    /* ===================== VIEWS ===================== */
+    .view { display: none; padding: 24px; animation: fadeUp 0.3s ease; }
+    .view.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .view-inner { max-width: 1500px; margin: 0 auto; }
+
+    .section-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 4px; }
+    .section-desc { font-size: 12.5px; color: var(--text-soft); margin-bottom: 18px; }
+
+    /* ===================== STATS ===================== */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+
+    .stat {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+
+    .stat-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .stat-label { font-size: 11.5px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .stat-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      display: grid; place-items: center; font-size: 14px;
+    }
+    .stat-icon.blue { background: var(--brand-soft); color: var(--brand); }
+    .stat-icon.green { background: var(--success-soft); color: var(--success); }
+    .stat-icon.amber { background: var(--warning-soft); color: var(--warning); }
+    .stat-icon.red { background: var(--danger-soft); color: var(--danger); }
+    .stat-icon.purple { background: var(--purple-soft); color: var(--purple); }
+
+    .stat-value { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+    .stat-foot { font-size: 11.5px; color: var(--text-soft); margin-top: 8px; display: flex; align-items: center; gap: 5px; }
+    .stat-foot .up { color: var(--success); font-weight: 600; }
+    .stat-foot .down { color: var(--danger); font-weight: 600; }
+
+    /* ===================== CARDS ===================== */
+    .card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      transition: box-shadow var(--transition);
+    }
+    .card:hover { box-shadow: var(--shadow-sm); }
+
+    .card-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; gap: 12px;
+    }
+    .card-head h3 { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+    .card-head small { font-size: 11.5px; color: var(--text-soft); display: block; margin-top: 2px; }
+
+    /* ===================== CHARTS ===================== */
+    .charts-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .chart-wrap { position: relative; height: 220px; }
+
+    /* ===================== TOOLBAR ===================== */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+
+    .tabs {
+      display: flex; gap: 3px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 4px; border-radius: var(--radius-md);
+    }
+
+    .tab {
+      padding: 7px 14px; border-radius: 8px;
+      font-size: 12.5px; font-weight: 500;
+      color: var(--text-muted);
+      transition: all var(--transition);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { background: var(--brand); color: #fff; font-weight: 600; box-shadow: 0 2px 8px var(--brand-glow); }
+    .tab .count {
+      background: rgba(255,255,255,0.25); padding: 1px 7px;
+      border-radius: 8px; font-size: 10.5px; font-weight: 700;
+    }
+    .tab:not(.active) .count { background: var(--bg-hover); color: var(--text-muted); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 16px; border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 600;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--brand); color: #fff;
+      box-shadow: 0 4px 12px var(--brand-glow);
+    }
+    .btn-primary:hover { background: var(--brand-hover); transform: translateY(-1px); box-shadow: 0 6px 16px var(--brand-glow); }
+
+    .btn-ghost {
+      background: var(--bg-elevated); color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--bg-hover); color: var(--text); }
+    .btn-ghost.active { background: var(--brand-soft); color: var(--brand); border-color: transparent; }
+
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-icon { padding: 8px; width: 34px; height: 34px; justify-content: center; }
+
+    .toolbar-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    /* ===================== TASK LIST ===================== */
+    .task-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .task {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 13px 16px;
+      display: flex; align-items: center; gap: 12px;
+      transition: all var(--transition);
+      animation: fadeUp 0.25s ease;
+      position: relative;
+    }
+    .task:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); transform: translateX(2px); }
+    .task.selected { border-color: var(--brand); background: var(--brand-soft); }
+    .task.done .task-title { text-decoration: line-through; color: var(--text-soft); }
+
+    .checkbox {
+      width: 20px; height: 20px; border-radius: 6px;
+      border: 2px solid var(--border-strong);
+      display: grid; place-items: center;
+      cursor: pointer; flex-shrink: 0;
+      transition: all var(--transition);
+      color: #fff; font-size: 10px;
+    }
+    .checkbox:hover { border-color: var(--brand); }
+    .checkbox.checked { background: var(--success); border-color: var(--success); }
+
+    .task-body { flex: 1; min-width: 0; }
+    .task-title {
+      font-size: 13.5px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+    .task-meta {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 11.5px; color: var(--text-soft);
+      flex-wrap: wrap;
+    }
+    .task-meta span { display: inline-flex; align-items: center; gap: 4px; }
+
+    .chip {
+      padding: 3px 9px; border-radius: var(--radius-pill);
+      font-size: 10.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .chip.high { background: var(--danger-soft); color: var(--danger); }
+    .chip.medium { background: var(--warning-soft); color: var(--warning); }
+    .chip.low { background: var(--success-soft); color: var(--success); }
+    .chip.tag { background: var(--brand-soft); color: var(--brand); text-transform: none; letter-spacing: 0; }
+
+    .task-actions { display: flex; gap: 3px; opacity: 0; transition: opacity var(--transition); }
+    .task:hover .task-actions { opacity: 1; }
+
+    .act-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      color: var(--text-soft);
+      display: grid; place-items: center;
+      font-size: 12px;
+      transition: all var(--transition);
+    }
+    .act-btn:hover { background: var(--bg-hover); color: var(--brand); }
+    .act-btn.del:hover { background: var(--danger-soft); color: var(--danger); }
+    .act-btn.star:hover, .act-btn.star.active { background: var(--warning-soft); color: var(--warning); }
+
+    /* ===================== EMPTY ===================== */
+    .empty {
+      padding: 60px 20px; text-align: center;
+      background: var(--bg-elevated);
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-lg);
+      color: var(--text-muted);
+    }
+    .empty i { font-size: 32px; color: var(--text-soft); margin-bottom: 12px; display: block; }
+    .empty h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+    .empty p { font-size: 12.5px; margin-bottom: 16px; }
+
+    /* ===================== KANBAN ===================== */
+    .kanban {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .kanban-col {
+      background: var(--bg-soft);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      display: flex; flex-direction: column;
+      gap: 10px;
+      min-height: 400px;
+      border: 1px solid var(--border);
+    }
+
+    .kanban-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 10px; margin-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+    }
+    .kanban-head h4 {
+      font-size: 12.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .kanban-head .dot-indicator { width: 8px; height: 8px; border-radius: 50%; }
+    .kanban-head .count {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      padding: 1px 8px; border-radius: var(--radius-pill);
+      font-size: 11px; font-weight: 700; color: var(--text-muted);
+    }
+
+    .kanban-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      cursor: grab;
+      transition: all var(--transition);
+    }
+    .kanban-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--border-strong); }
+    .kanban-card:active { cursor: grabbing; }
+    .kanban-card.dragging { opacity: 0.5; }
+    .kanban-card .kc-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+    .kanban-card .kc-foot { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-soft); }
+
+    .kanban-col.drag-over { background: var(--brand-soft); border-color: var(--brand); }
+
+    /* ===================== CALENDAR ===================== */
+    .cal-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+    .cal-nav { display: flex; gap: 6px; align-items: center; }
+    .cal-month { font-size: 15px; font-weight: 700; min-width: 160px; text-align: center; }
+
+    .calendar {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .cal-dow {
+      padding: 12px 8px;
+      text-align: center;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--text-soft);
+      background: var(--bg-soft);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cal-day {
+      min-height: 110px;
+      padding: 8px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+      cursor: pointer;
+      position: relative;
+    }
+    .cal-day:nth-child(7n) { border-right: none; }
+    .cal-day:hover { background: var(--bg-soft); }
+    .cal-day.other { opacity: 0.35; }
+    .cal-day.today .cal-day-num {
+      background: var(--brand); color: #fff;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+    }
+
+    .cal-day-num { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; display: inline-block; }
+
+    .cal-task {
+      font-size: 10.5px; padding: 3px 6px;
+      border-radius: 5px;
+      margin-bottom: 3px;
+      overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    .cal-task.high { background: var(--danger-soft); color: var(--danger); }
+    .cal-task.medium { background: var(--warning-soft); color: var(--warning); }
+    .cal-task.low { background: var(--success-soft); color: var(--success); }
+    .cal-more { font-size: 10px; color: var(--text-soft); padding: 2px 6px; font-weight: 600; }
+
+    /* ===================== ACTIVITY FEED ===================== */
+    .feed { display: flex; flex-direction: column; gap: 4px; }
+
+    .feed-item {
+      display: flex; gap: 12px;
+      padding: 12px 8px;
+      border-radius: var(--radius-md);
+      transition: background var(--transition);
+    }
+    .feed-item:hover { background: var(--bg-soft); }
+
+    .feed-icon {
+      width: 32px; height: 32px; border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 12px; flex-shrink: 0;
+    }
+    .feed-icon.green { background: var(--success-soft); color: var(--success); }
+    .feed-icon.blue { background: var(--brand-soft); color: var(--brand); }
+    .feed-icon.red { background: var(--danger-soft); color: var(--danger); }
+    .feed-icon.amber { background: var(--warning-soft); color: var(--warning); }
+    .feed-icon.purple { background: var(--purple-soft); color: var(--purple); }
+
+    .feed-body { flex: 1; min-width: 0; }
+    .feed-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+    .feed-text strong { font-weight: 600; }
+    .feed-time { font-size: 11px; color: var(--text-soft); margin-top: 3px; }
+
+    /* ===================== TAGS ===================== */
+    .tags-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+
+    .tag-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      transition: all var(--transition);
+      cursor: pointer;
+    }
+    .tag-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+    .tag-name {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13.5px; font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .tag-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    .tag-bar {
+      height: 6px; background: var(--bg-soft);
+      border-radius: var(--radius-pill);
+      overflow: hidden; margin-bottom: 8px;
+    }
+    .tag-bar > div { height: 100%; border-radius: var(--radius-pill); transition: width 0.4s; }
+
+    .tag-count { font-size: 11.5px; color: var(--text-soft); display: flex; justify-content: space-between; }
+
+    /* ===================== ANALYTICS ===================== */
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+
+    .progress-list { display: flex; flex-direction: column; gap: 16px; }
+    .progress-row { display: flex; flex-direction: column; gap: 6px; }
+    .progress-row .pr-top { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 500; }
+    .progress-row .pr-top span:last-child { color: var(--text-muted); }
+
+    .bar { height: 8px; background: var(--bg-soft); border-radius: var(--radius-pill); overflow: hidden; }
+    .bar > div { height: 100%; border-radius: var(--radius-pill); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /* ===================== SETTINGS ===================== */
+    .settings-grid { display: grid; grid-template-columns: 220px 1fr; gap: 20px; }
+
+    .settings-nav { display: flex; flex-direction: column; gap: 2px; }
+    .settings-nav button {
+      text-align: left; padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 500;
+      color: var(--text-muted);
+      display: flex; align-items: center; gap: 10px;
+      transition: all var(--transition);
+    }
+    .settings-nav button:hover { background: var(--bg-hover); color: var(--text); }
+    .settings-nav button.active { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+
+    .form-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 0; border-bottom: 1px solid var(--border); gap: 16px;
+    }
+    .form-row:last-child { border-bottom: none; }
+    .form-row .fr-label strong { font-size: 13.5px; font-weight: 600; display: block; margin-bottom: 2px; }
+    .form-row .fr-label small { font-size: 12px; color: var(--text-soft); }
+
+    .switch {
+      width: 42px; height: 24px; border-radius: var(--radius-pill);
+      background: var(--border-strong); position: relative;
+      cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+    }
+    .switch::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 18px; height: 18px; background: #fff;
+      border-radius: 50%; transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .switch.on { background: var(--brand); }
+    .switch.on::after { transform: translateX(18px); }
+
+    /* ===================== MODAL ===================== */
+    .modal-bg {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 200; display: grid; place-items: center;
+      padding: 20px; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-bg.open { opacity: 1; pointer-events: auto; }
+
+    .modal {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-xl);
+      width: 100%; max-width: 480px;
+      max-height: 90vh; overflow-y: auto;
+      padding: 24px; box-shadow: var(--shadow-xl);
+      transform: translateY(20px) scale(0.96);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-bg.open .modal { transform: translateY(0) scale(1); }
+    .modal.modal-lg { max-width: 640px; }
+
+    .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-head h3 { font-size: 16px; font-weight: 700; }
+
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 8px;
+      color: var(--text-muted); font-size: 14px;
+      display: grid; place-items: center;
+      transition: all var(--transition);
+    }
+    .modal-close:hover { background: var(--danger-soft); color: var(--danger); }
+
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 10px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      font-size: 13.5px; color: var(--text);
+      outline: none; transition: all var(--transition);
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--brand); background: var(--bg-elevated);
+      box-shadow: 0 0 0 3px var(--brand-soft);
+    }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+    /* ===================== TOAST ===================== */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--text); color: var(--bg-elevated);
+      padding: 12px 18px; border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 500;
+      box-shadow: var(--shadow-xl);
+      display: flex; align-items: center; gap: 10px;
+      z-index: 300; opacity: 0; transform: translateY(12px);
+      transition: all 0.25s; pointer-events: none;
+      max-width: 340px;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast i { color: var(--success); font-size: 14px; }
+
+    /* ===================== COMMAND PALETTE ===================== */
+    .cmd-bg {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 250;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding-top: 100px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .cmd-bg.open { opacity: 1; pointer-events: auto; }
+
+    .cmd {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      width: 100%; max-width: 560px;
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      transform: translateY(-10px) scale(0.98);
+      transition: transform 0.2s;
+    }
+    .cmd-bg.open .cmd { transform: translateY(0) scale(1); }
+
+    .cmd-input {
+      width: 100%; padding: 18px 20px;
+      border: none; outline: none;
+      background: transparent; color: var(--text);
+      font-size: 15px; font-weight: 500;
+      border-bottom: 1px solid var(--border);
+    }
+    .cmd-input::placeholder { color: var(--text-soft); }
+
+    .cmd-list { max-height: 340px; overflow-y: auto; padding: 8px; }
+    .cmd-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px; border-radius: var(--radius-md);
+      font-size: 13.5px; font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer; transition: background var(--transition);
+    }
+    .cmd-item:hover, .cmd-item.selected { background: var(--brand-soft); color: var(--brand); }
+    .cmd-item i { width: 18px; text-align: center; }
+    .cmd-item .kbd { margin-left: auto; font-size: 11px; color: var(--text-soft); }
+
+    .kbd {
+      background: var(--bg-soft); border: 1px solid var(--border);
+      padding: 2px 7px; border-radius: 5px;
+      font-size: 11px; font-weight: 600;
+      color: var(--text-muted);
+      font-family: ui-monospace, monospace;
+    }
+
+    /* ===================== BULK ACTION BAR ===================== */
+    .bulk-bar {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      background: var(--text); color: var(--bg-elevated);
+      padding: 12px 20px; border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-xl);
+      display: flex; align-items: center; gap: 16px;
+      z-index: 100; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 13px; font-weight: 500;
+    }
+    .bulk-bar.show { transform: translateX(-50%) translateY(0); }
+    .bulk-bar strong { color: #fff; }
+    .bulk-bar .bulk-actions { display: flex; gap: 6px; }
+    .bulk-bar button {
+      padding: 6px 12px; border-radius: var(--radius-pill);
+      font-size: 12px; font-weight: 600;
+      background: rgba(255,255,255,0.15); color: #fff;
+      transition: background var(--transition);
+    }
+    .bulk-bar button:hover { background: rgba(255,255,255,0.25); }
+    .bulk-bar button.danger { background: var(--danger); }
+    .bulk-bar button.danger:hover { background: #dc2626; }
+
+    /* ===================== MOBILE OVERLAY ===================== */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 55; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .overlay.on { opacity: 1; pointer-events: auto; }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 1200px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-grid { grid-template-columns: 1fr; }
+      .analytics-grid { grid-template-columns: 1fr; }
+      .settings-grid { grid-template-columns: 1fr; }
+      .kanban { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 860px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: var(--shadow-xl); }
+      .main { margin-left: 0; }
+      .menu-btn { display: grid; }
+      .search { display: none; }
+      .view { padding: 18px 14px; }
+      .header { padding: 0 14px; }
+      .calendar .cal-day { min-height: 80px; }
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .kanban { grid-template-columns: 1fr; }
+      .field-row { grid-template-columns: 1fr; }
+      .task { flex-wrap: wrap; padding: 12px 14px; }
+      .task-actions { opacity: 1; }
+      .bulk-bar { left: 14px; right: 14px; transform: translateX(0) translateY(120%); }
+      .bulk-bar.show { transform: translateX(0) translateY(0); }
+      .cal-day { min-height: 60px; padding: 4px; }
+      .cal-task { font-size: 9px; padding: 2px 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="fas fa-bolt"></i></div>
+        <div class="brand-name">Task<span>Flow</span></div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <div class="nav-item active" data-view="dashboard"><i class="fas fa-grid-2"></i> Dashboard</div>
+        <div class="nav-item" data-view="tasks">
+          <i class="fas fa-list-check"></i> My Tasks
+          <span class="nav-badge" id="navTaskCount">0</span>
+        </div>
+        <div class="nav-item" data-view="kanban"><i class="fas fa-columns"></i> Board</div>
+        <div class="nav-item" data-view="calendar"><i class="fas fa-calendar"></i> Calendar</div>
+        <div class="nav-item" data-view="upcoming">
+          <i class="fas fa-clock"></i> Upcoming
+          <span class="nav-badge danger" id="navOverdue">0</span>
+        </div>
+
+        <div class="nav-label">Insights</div>
+        <div class="nav-item" data-view="analytics"><i class="fas fa-chart-simple"></i> Analytics</div>
+        <div class="nav-item" data-view="tags"><i class="fas fa-tags"></i> Tags</div>
+        <div class="nav-item" data-view="activity"><i class="fas fa-clock-rotate-left"></i> Activity</div>
+
+        <div class="nav-label">Account</div>
+        <div class="nav-item" data-view="settings"><i class="fas fa-gear"></i> Settings</div>
+        <div class="nav-item" id="themeNavItem"><i class="fas fa-moon"></i> Dark mode</div>
+        <div class="nav-item" id="cmdNavItem"><i class="fas fa-terminal"></i> Command <span class="kbd" style="margin-left:auto;font-size:10px;">⌘K</span></div>
+      </nav>
+
+      <div class="sidebar-user" id="sidebarUser">
+        <div class="avatar">JD</div>
+        <div class="user-meta">
+          <strong>Jordan Davis</strong>
+          <small>Product Lead</small>
+        </div>
+        <i class="fas fa-chevron-right" style="color:var(--text-soft);font-size:11px;"></i>
+      </div>
+    </aside>
+
+    <!-- ========== MAIN ========== -->
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+          <div>
+            <div class="page-title" id="pageTitle">Dashboard</div>
+            <div class="page-subtitle" id="pageSubtitle">Overview of your productivity</div>
+          </div>
+        </div>
+
+        <div class="search">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" placeholder="Search tasks, tags, people... (⌘K)" />
+        </div>
+
+        <div class="header-right">
+          <button class="icon-btn" id="cmdBtn" title="Command palette (⌘K)"><i class="fas fa-terminal"></i></button>
+          <button class="icon-btn" id="themeBtn" title="Toggle theme"><i class="fas fa-moon"></i></button>
+          <button class="icon-btn" id="notifBtn" title="Notifications">
+            <i class="far fa-bell"></i>
+            <span class="count">3</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- =================== DASHBOARD =================== -->
+      <section class="view active" id="view-dashboard">
+        <div class="view-inner">
+          <div class="stats-grid">
+            <div class="stat" data-goto="tasks">
+              <div class="stat-top">
+                <span class="stat-label">Total tasks</span>
+                <div class="stat-icon blue"><i class="fas fa-layer-group"></i></div>
+              </div>
+              <div class="stat-value" id="statTotal">0</div>
+              <div class="stat-foot"><span class="up" id="statWeekAdded">+0</span> this week</div>
+            </div>
+            <div class="stat" data-goto="tasks">
+              <div class="stat-top">
+                <span class="stat-label">Completed</span>
+                <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+              </div>
+              <div class="stat-value" id="statCompleted">0</div>
+              <div class="stat-foot"><span class="up" id="statCompletionRate">0%</span> completion rate</div>
+            </div>
+            <div class="stat" data-goto="tasks">
+              <div class="stat-top">
+                <span class="stat-label">In progress</span>
+                <div class="stat-icon amber"><i class="fas fa-spinner"></i></div>
+              </div>
+              <div class="stat-value" id="statActive">0</div>
+              <div class="stat-foot">Currently active</div>
+            </div>
+            <div class="stat" data-goto="upcoming">
+              <div class="stat-top">
+                <span class="stat-label">Overdue</span>
+                <div class="stat-icon red"><i class="fas fa-triangle-exclamation"></i></div>
+              </div>
+              <div class="stat-value" id="statOverdue">0</div>
+              <div class="stat-foot">Require attention</div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h3>Weekly progress</h3>
+                  <small>Tasks completed per day</small>
+                </div>
+                <div class="tabs" style="padding:3px;">
+                  <button class="tab active" style="padding:4px 10px;font-size:11px;" data-range="week">Week</button>
+                  <button class="tab" style="padding:4px 10px;font-size:11px;" data-range="month">Month</button>
+                </div>
+              </div>
+              <div class="chart-wrap"><canvas id="chartWeekly"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h3>Priority split</h3>
+                  <small>By task priority</small>
+                </div>
+              </div>
+              <div class="chart-wrap"><canvas id="chartPriority"></canvas></div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;">
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h3>Recent tasks</h3>
+                  <small>Your latest tasks</small>
+                </div>
+                <button class="btn btn-ghost btn-sm" data-goto="tasks">View all <i class="fas fa-arrow-right"></i></button>
+              </div>
+              <div class="task-list" id="dashTaskList"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h3>Recent activity</h3>
+                  <small>Latest updates</small>
+                </div>
+              </div>
+              <div class="feed" id="dashFeed"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================== TASKS =================== -->
+      <section class="view" id="view-tasks">
+        <div class="view-inner">
+          <div class="toolbar">
+            <div class="tabs" id="taskTabs">
+              <button class="tab active" data-filter="all">All <span class="count" id="countAll">0</span></button>
+              <button class="tab" data-filter="active">Active <span class="count" id="countActive">0</span></button>
+              <button class="tab" data-filter="completed">Completed <span class="count" id="countCompleted">0</span></button>
+              <button class="tab" data-filter="overdue">Overdue <span class="count" id="countOverdue">0</span></button>
+              <button class="tab" data-filter="starred">Starred <span class="count" id="countStarred">0</span></button>
+            </div>
+            <div class="toolbar-actions">
+              <button class="btn btn-ghost btn-sm" id="sortBtn"><i class="fas fa-arrow-down-wide-short"></i> Sort</button>
+              <button class="btn btn-ghost btn-sm" id="selectBtn"><i class="fas fa-check-square"></i> Select</button>
+              <button class="btn btn-primary" id="newTaskBtn"><i class="fas fa-plus"></i> New task</button>
+            </div>
+          </div>
+          <div class="task-list" id="fullTaskList"></div>
+        </div>
+      </section>
+
+      <!-- =================== KANBAN =================== -->
+      <section class="view" id="view-kanban">
+        <div class="view-inner">
+          <div class="toolbar">
+            <div>
+              <h3 class="section-title">Kanban board</h3>
+              <p class="section-desc" style="margin-bottom:0;">Drag cards between columns to update status</p>
+            </div>
+            <button class="btn btn-primary" id="newTaskBtnK"><i class="fas fa-plus"></i> New task</button>
+          </div>
+          <div class="kanban" id="kanban">
+            <div class="kanban-col" data-status="todo">
+              <div class="kanban-head">
+                <h4><span class="dot-indicator" style="background:var(--text-soft)"></span> To do</h4>
+                <span class="count" id="kbTodo">0</span>
+              </div>
+              <div class="kanban-body" data-status="todo"></div>
+            </div>
+            <div class="kanban-col" data-status="progress">
+              <div class="kanban-head">
+                <h4><span class="dot-indicator" style="background:var(--warning)"></span> In progress</h4>
+                <span class="count" id="kbProgress">0</span>
+              </div>
+              <div class="kanban-body" data-status="progress"></div>
+            </div>
+            <div class="kanban-col" data-status="review">
+              <div class="kanban-head">
+                <h4><span class="dot-indicator" style="background:var(--info)"></span> Review</h4>
+                <span class="count" id="kbReview">0</span>
+              </div>
+              <div class="kanban-body" data-status="review"></div>
+            </div>
+            <div class="kanban-col" data-status="done">
+              <div class="kanban-head">
+                <h4><span class="dot-indicator" style="background:var(--success)"></span> Done</h4>
+                <span class="count" id="kbDone">0</span>
+              </div>
+              <div class="kanban-body" data-status="done"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================== CALENDAR =================== -->
+      <section class="view" id="view-calendar">
+        <div class="view-inner">
+          <div class="cal-head">
+            <div>
+              <h3 class="section-title">Calendar</h3>
+              <p class="section-desc" style="margin-bottom:0;">View tasks by due date</p>
+            </div>
+            <div class="cal-nav">
+              <button class="btn btn-ghost btn-icon" id="calPrev"><i class="fas fa-chevron-left"></i></button>
+              <span class="cal-month" id="calMonth">—</span>
+              <button class="btn btn-ghost btn-icon" id="calNext"><i class="fas fa-chevron-right"></i></button>
+              <button class="btn btn-ghost btn-sm" id="calToday">Today</button>
+            </div>
+          </div>
+          <div class="calendar">
+            <div class="cal-grid" id="calDow"></div>
+            <div class="cal-grid" id="calDays"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================== UPCOMING =================== -->
+      <section class="view" id="view-upcoming">
+        <div class="view-inner">
+          <h3 class="section-title">Upcoming tasks</h3>
+          <p class="section-desc">Tasks that are due in the future or need attention</p>
+          <div class="upcoming-grid" id="upcomingGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;"></div>
+        </div>
+      </section>
+
+      <!-- =================== ANALYTICS =================== -->
+      <section class="view" id="view-analytics">
+        <div class="view-inner">
+          <h3 class="section-title">Performance analytics</h3>
+          <p class="section-desc">Insights about your productivity and task distribution</p>
+
+          <div class="analytics-grid">
+            <div class="card">
+              <div class="card-head"><h3>Completion overview</h3></div>
+              <div class="progress-list">
+                <div class="progress-row">
+                  <div class="pr-top"><span>Completed</span><span id="anCompleted">0%</span></div>
+                  <div class="bar"><div style="width:0%; background:var(--success)" id="barCompleted"></div></div>
+                </div>
+                <div class="progress-row">
+                  <div class="pr-top"><span>In progress</span><span id="anActive">0%</span></div>
+                  <div class="bar"><div style="width:0%; background:var(--brand)" id="barActive"></div></div>
+                </div>
+                <div class="progress-row">
+                  <div class="pr-top"><span>Overdue</span><span id="anOverdue">0%</span></div>
+                  <div class="bar"><div style="width:0%; background:var(--danger)" id="barOverdue"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h3>Priority distribution</h3></div>
+              <div class="progress-list">
+                <div class="progress-row">
+                  <div class="pr-top"><span>High priority</span><span id="anHighCount">0</span></div>
+                  <div class="bar"><div style="width:0%; background:var(--danger)" id="barHigh"></div></div>
+                </div>
+                <div class="progress-row">
+                  <div class="pr-top"><span>Medium priority</span><span id="anMedCount">0</span></div>
+                  <div class="bar"><div style="width:0%; background:var(--warning)" id="barMed"></div></div>
+                </div>
+                <div class="progress-row">
+                  <div class="pr-top"><span>Low priority</span><span id="anLowCount">0</span></div>
+                  <div class="bar"><div style="width:0%; background:var(--success)" id="barLow"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="charts-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h3>Task trend</h3>
+                  <small>Last 7 days activity</small>
+                </div>
+              </div>
+              <div class="chart-wrap"><canvas id="chartTrend"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h3>Completion rate</h3>
+                  <small>Weekly comparison</small>
+                </div>
+              </div>
+              <div class="chart-wrap"><canvas id="chartRate"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================== TAGS =================== -->
+      <section class="view" id="view-tags">
+        <div class="view-inner">
+          <h3 class="section-title">Tags & categories</h3>
+          <p class="section-desc">Organize tasks with tags</p>
+          <div class="tags-grid" id="tagsGrid"></div>
+        </div>
+      </section>
+
+      <!-- =================== ACTIVITY =================== -->
+      <section class="view" id="view-activity">
+        <div class="view-inner">
+          <h3 class="section-title">Activity feed</h3>
+          <p class="section-desc">Recent changes across your workspace</p>
+          <div class="card">
+            <div class="feed" id="fullFeed"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================== SETTINGS =================== -->
+      <section class="view" id="view-settings">
+        <div class="view-inner">
+          <h3 class="section-title">Settings</h3>
+          <p class="section-desc">Manage your preferences and account</p>
+
+          <div class="settings-grid">
+            <div class="settings-nav">
+              <button class="active"><i class="fas fa-user"></i> Profile</button>
+              <button><i class="fas fa-bell"></i> Notifications</button>
+              <button><i class="fas fa-palette"></i> Appearance</button>
+              <button><i class="fas fa-shield"></i> Security</button>
+              <button><i class="fas fa-plug"></i> Integrations</button>
+            </div>
+
+            <div class="card">
+              <div style="display:flex;align-items:center;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:8px;">
+                <div class="avatar lg">JD</div>
+                <div style="flex:1;">
+                  <strong style="font-size:15px;display:block;">Jordan Davis</strong>
+                  <small style="color:var(--text-soft);">jordan.davis@taskflow.app</small>
+                  <div style="margin-top:8px;display:flex;gap:6px;">
+                    <button class="btn btn-ghost btn-sm">Change photo</button>
+                    <button class="btn btn-ghost btn-sm">Edit profile</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="fr-label"><strong>Email notifications</strong><small>Receive daily task summaries</small></div>
+                <div class="switch on" data-switch></div>
+              </div>
+              <div class="form-row">
+                <div class="fr-label"><strong>Push notifications</strong><small>Real-time task alerts</small></div>
+                <div class="switch" data-switch></div>
+              </div>
+              <div class="form-row">
+                <div class="fr-label"><strong>Dark mode</strong><small>Use dark theme across app</small></div>
+                <div class="switch" id="themeSwitch"></div>
+              </div>
+              <div class="form-row">
+                <div class="fr-label"><strong>Weekly report</strong><small>Get a weekly analytics email</small></div>
+                <div class="switch on" data-switch></div>
+              </div>
+              <div class="form-row">
+                <div class="fr-label"><strong>Sound effects</strong><small>Play sounds on task actions</small></div>
+                <div class="switch" data-switch></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ========== MOBILE OVERLAY ========== -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ========== MODAL ========== -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modalTitle">New task</h3>
+        <button class="modal-close" id="modalClose"><i class="fas fa-xmark"></i></button>
+      </div>
+      <form id="taskForm">
+        <div class="field">
+          <label for="fTitle">Task title</label>
+          <input type="text" id="fTitle" placeholder="e.g. Design new landing page" required />
+        </div>
+        <div class="field">
+          <label for="fDesc">Description (optional)</label>
+          <textarea id="fDesc" placeholder="Add more details about this task..."></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="fPriority">Priority</label>
+            <select id="fPriority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fDue">Due date</label>
+            <input type="date" id="fDue" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="fTags">Category</label>
+            <input type="text" id="fTags" placeholder="e.g. Design" />
+          </div>
+          <div class="field">
+            <label for="fStatus">Status</label>
+            <select id="fStatus">
+              <option value="todo" selected>To do</option>
+              <option value="progress">In progress</option>
+              <option value="review">Review</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" id="modalCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Save task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== COMMAND PALETTE ========== -->
+  <div class="cmd-bg" id="cmdBg">
+    <div class="cmd">
+      <input type="text" class="cmd-input" id="cmdInput" placeholder="Type a command or search..." />
+      <div class="cmd-list" id="cmdList"></div>
+    </div>
+  </div>
+
+  <!-- ========== BULK BAR ========== -->
+  <div class="bulk-bar" id="bulkBar">
+    <strong id="bulkCount">0 selected</strong>
+    <div class="bulk-actions">
+      <button data-bulk="complete"><i class="fas fa-check"></i> Complete</button>
+      <button data-bulk="star"><i class="fas fa-star"></i> Star</button>
+      <button data-bulk="high"><i class="fas fa-arrow-up"></i> High</button>
+      <button data-bulk="delete" class="danger"><i class="fas fa-trash"></i> Delete</button>
+    </div>
+  </div>
+
+  <!-- ========== TOAST ========== -->
+  <div class="toast" id="toast"><i class="fas fa-circle-check"></i><span id="toastMsg">Saved</span></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ============ STORAGE ============
+      const KEY = "taskflow-pro-v1";
+      const FEED_KEY = "taskflow-feed-v1";
+
+      const DEFAULT_TASKS = [
+        { id: 1, title: "Design new dashboard UI", desc: "Create wireframes and high-fidelity mockups", priority: "high", due: "2025-04-07", tags: "Design", completed: false, starred: true, status: "progress" },
+        { id: 2, title: "Update API documentation", desc: "Document all new endpoints", priority: "medium", due: "2025-04-06", tags: "Development", completed: true, starred: false, status: "done" },
+        { id: 3, title: "Team sync meeting", desc: "Weekly catch-up with the team", priority: "high", due: "2025-04-07", tags: "Meeting", completed: false, starred: false, status: "todo" },
+        { id: 4, title: "Refactor authentication flow", desc: "Switch to JWT-based auth", priority: "medium", due: "2025-04-09", tags: "Development", completed: false, starred: false, status: "progress" },
+        { id: 5, title: "Prepare sprint report", desc: "Q2 sprint summary", priority: "low", due: "2025-04-05", tags: "Reporting", completed: true, starred: false, status: "done" },
+        { id: 6, title: "User feedback analysis", desc: "Analyze NPS survey responses", priority: "medium", due: "2025-04-08", tags: "Research", completed: false, starred: true, status: "todo" },
+        { id: 7, title: "Fix responsive issues", desc: "Mobile layout breaks on small screens", priority: "high", due: "2025-04-07", tags: "Development", completed: false, starred: false, status: "progress" },
+        { id: 8, title: "Onboarding new hire", desc: "Setup accounts and intro session", priority: "low", due: "2025-04-04", tags: "HR", completed: true, starred: false, status: "done" },
+        { id: 9, title: "Quarterly planning", desc: "Q3 roadmap and OKRs", priority: "high", due: "2025-04-10", tags: "Strategy", completed: false, starred: true, status: "todo" },
+        { id: 10, title: "Update design system", desc: "Add new component variants", priority: "medium", due: "2025-04-03", tags: "Design", completed: true, starred: false, status: "done" },
+        { id: 11, title: "Performance audit", desc: "Lighthouse + bundle analysis", priority: "medium", due: "2025-04-08", tags: "Development", completed: false, starred: false, status: "review" },
+        { id: 12, title: "Write blog post", desc: "How we rebuilt our dashboard", priority: "low", due: "2025-04-02", tags: "Marketing", completed: true, starred: false, status: "done" }
+      ];
+
+      let tasks = [];
+      let feed = [];
+      let activeView = "dashboard";
+      let currentFilter = "all";
+      let searchQuery = "";
+      let editingId = null;
+      let selectedIds = new Set();
+      let selectMode = false;
+      let sortMode = "due";
+      let calDate = new Date();
+
+      // ============ HELPERS ============
+      const $ = (id) => document.getElementById(id);
+      const today = () => new Date().toISOString().slice(0, 10);
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+      const uid = () => Date.now() + Math.floor(Math.random() * 1000);
+
+      function isOverdue(t) { return !t.completed && t.due && t.due < today(); }
+
+      function save() {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(tasks));
+          localStorage.setItem(FEED_KEY, JSON.stringify(feed.slice(0, 50)));
+        } catch (e) {}
+      }
+
+      function load() {
+        try {
+          const raw = localStorage.getItem(KEY);
+          tasks = raw ? JSON.parse(raw) : [...DEFAULT_TASKS];
+          if (!raw) save();
+
+          const rawFeed = localStorage.getItem(FEED_KEY);
+          feed = rawFeed ? JSON.parse(rawFeed) : [
+            { type: "success", text: "Task <strong>Update API documentation</strong> completed", time: "2h ago" },
+            { type: "info", text: "New task <strong>Design new dashboard UI</strong> created", time: "5h ago" },
+            { type: "warning", text: "Task <strong>Fix responsive issues</strong> is now overdue", time: "Yesterday" },
+            { type: "purple", text: "Tag <strong>Design</strong> was added to 3 tasks", time: "2d ago" }
+          ];
+        } catch (e) { tasks = [...DEFAULT_TASKS]; }
+      }
+
+      function addFeed(type, text) {
+        feed.unshift({ type, text, time: "Just now" });
+        if (feed.length > 50) feed.length = 50;
+      }
+
+      function toast(msg, err) {
+        const t = $("toast");
+        $("toastMsg").textContent = msg;
+        t.querySelector("i").className = err ? "fas fa-circle-exclamation" : "fas fa-circle-check";
+        t.querySelector("i").style.color = err ? "var(--danger)" : "var(--success)";
+        t.classList.add("show");
+        clearTimeout(t._t);
+        t._t = setTimeout(() => t.classList.remove("show"), 2400);
+      }
+
+      // ============ FILTER & SORT ============
+      function filteredTasks() {
+        let out = [...tasks];
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          out = out.filter(t =>
+            t.title.toLowerCase().includes(q) ||
+            (t.tags || "").toLowerCase().includes(q) ||
+            (t.desc || "").toLowerCase().includes(q)
+          );
+        }
+        if (currentFilter === "active") out = out.filter(t => !t.completed);
+        else if (currentFilter === "completed") out = out.filter(t => t.completed);
+        else if (currentFilter === "overdue") out = out.filter(isOverdue);
+        else if (currentFilter === "starred") out = out.filter(t => t.starred);
+
+        if (sortMode === "due") out.sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999"));
+        else if (sortMode === "priority") {
+          const order = { high: 0, medium: 1, low: 2 };
+          out.sort((a, b) => order[a.priority] - order[b.priority]);
+        }
+        else if (sortMode === "title") out.sort((a, b) => a.title.localeCompare(b.title));
+        else if (sortMode === "created") out.sort((a, b) => b.id - a.id);
+        return out;
+      }
+
+      // ============ RENDER: TASK HTML ============
+      function taskHTML(t) {
+        const overdue = isOverdue(t);
+        const selected = selectedIds.has(t.id);
+        return `
+          <div class="task ${t.completed ? "done" : ""} ${selected ? "selected" : ""}" data-id="${t.id}">
+            ${selectMode ? `<div class="checkbox ${selected ? "checked" : ""}" data-action="select" data-id="${t.id}">${selected ? '<i class="fas fa-check"></i>' : ""}</div>` : ""}
+            <div class="checkbox ${t.completed ? "checked" : ""}" data-action="toggle" data-id="${t.id}">
+              ${t.completed ? '<i class="fas fa-check"></i>' : ""}
+            </div>
+            <div class="task-body">
+              <div class="task-title">${esc(t.title)}</div>
+              <div class="task-meta">
+                <span><i class="far fa-calendar"></i> ${esc(t.due || "No date")}</span>
+                <span class="chip tag">${esc(t.tags || "General")}</span>
+                ${overdue ? '<span style="color:var(--danger);font-weight:600;"><i class="fas fa-triangle-exclamation"></i> Overdue</span>' : ""}
+              </div>
+            </div>
+            <span class="chip ${t.priority}">${t.priority}</span>
+            <div class="task-actions">
+              <button class="act-btn star ${t.starred ? "active" : ""}" data-action="star" data-id="${t.id}" title="Star">
+                <i class="fas fa-star"></i>
+              </button>
+              <button class="act-btn" data-action="edit" data-id="${t.id}" title="Edit"><i class="fas fa-pen"></i></button>
+              <button class="act-btn del" data-action="delete" data-id="${t.id}" title="Delete"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }
+
+      // ============ RENDER: DASHBOARD ============
+      function renderDashboard() {
+        const total = tasks.length;
+        const completed = tasks.filter(t => t.completed).length;
+        const active = tasks.filter(t => !t.completed && !isOverdue(t)).length;
+        const overdue = tasks.filter(isOverdue).length;
+
+        $("statTotal").textContent = total;
+        $("statCompleted").textContent = completed;
+        $("statActive").textContent = active;
+        $("statOverdue").textContent = overdue;
+        $("statCompletionRate").textContent = total ? Math.round((completed / total) * 100) + "%" : "0%";
+
+        // Recent tasks
+        const recent = [...tasks].slice(0, 4);
+        const list = $("dashTaskList");
+        list.innerHTML = recent.length === 0
+          ? `<div class="empty" style="padding:30px 16px;"><i class="fas fa-clipboard-list"></i><h4>No tasks yet</h4><p>Create your first task</p></div>`
+          : recent.map(taskHTML).join("");
+
+        // Recent feed
+        const dashFeed = $("dashFeed");
+        const feedIconMap = { success: "green", info: "blue", warning: "amber", purple: "purple", red: "red" };
+        const feedIconFa = { success: "fa-check", info: "fa-plus", warning: "fa-exclamation", purple: "fa-tag", red: "fa-trash" };
+        dashFeed.innerHTML = feed.slice(0, 4).map(f => `
+          <div class="feed-item">
+            <div class="feed-icon ${feedIconMap[f.type] || "blue"}"><i class="fas ${feedIconFa[f.type] || "fa-circle"}"></i></div>
+            <div class="feed-body">
+              <div class="feed-text">${f.text}</div>
+              <div class="feed-time">${f.time}</div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      // ============ RENDER: FULL TASKS ============
+      function renderFullTasks() {
+        const list = $("fullTaskList");
+        const filtered = filteredTasks();
+
+        // Counts
+        $("countAll").textContent = tasks.length;
+        $("countActive").textContent = tasks.filter(t => !t.completed).length;
+        $("countCompleted").textContent = tasks.filter(t => t.completed).length;
+        $("countOverdue").textContent = tasks.filter(isOverdue).length;
+        $("countStarred").textContent = tasks.filter(t => t.starred).length;
+
+        if (filtered.length === 0) {
+          list.innerHTML = `<div class="empty">
+            <i class="fas fa-magnifying-glass"></i>
+            <h4>No tasks found</h4>
+            <p>Try a different filter or create a new task</p>
+            <button class="btn btn-primary" onclick="document.getElementById('newTaskBtn').click()"><i class="fas fa-plus"></i> New task</button>
+          </div>`;
+        } else {
+          list.innerHTML = filtered.map(taskHTML).join("");
+        }
+
+        // Bulk bar
+        const bulkBar = $("bulkBar");
+        if (selectedIds.size > 0) {
+          bulkBar.classList.add("show");
+          $("bulkCount").textContent = `${selectedIds.size} selected`;
+        } else {
+          bulkBar.classList.remove("show");
+        }
+      }
+
+      // ============ RENDER: KANBAN ============
+      function renderKanban() {
+        const cols = { todo: [], progress: [], review: [], done: [] };
+        tasks.forEach(t => {
+          let status = t.status || (t.completed ? "done" : "todo");
+          if (!cols[status]) status = "todo";
+          cols[status].push(t);
+        });
+
+        $("kbTodo").textContent = cols.todo.length;
+        $("kbProgress").textContent = cols.progress.length;
+        $("kbReview").textContent = cols.review.length;
+        $("kbDone").textContent = cols.done.length;
+
+        Object.keys(cols).forEach(status => {
+          const body = document.querySelector(`.kanban-body[data-status="${status}"]`);
+          if (!body) return;
+          body.innerHTML = cols[status].map(t => `
+            <div class="kanban-card" draggable="true" data-id="${t.id}">
+              <div class="kc-title">${esc(t.title)}</div>
+              <div class="kc-foot">
+                <span class="chip ${t.priority}">${t.priority}</span>
+                <span><i class="far fa-calendar"></i> ${esc(t.due || "—")}</span>
+              </div>
+            </div>
+          `).join("") || `<div style="text-align:center;padding:20px;font-size:11.5px;color:var(--text-soft);">Drop tasks here</div>`;
+        });
+
+        // Drag & drop
+        document.querySelectorAll(".kanban-card").forEach(card => {
+          card.addEventListener("dragstart", (e) => {
+            card.classList.add("dragging");
+            e.dataTransfer.setData("text/plain", card.dataset.id);
+            e.dataTransfer.effectAllowed = "move";
+          });
+          card.addEventListener("dragend", () => card.classList.remove("dragging"));
+        });
+
+        document.querySelectorAll(".kanban-col").forEach(col => {
+          col.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            col.classList.add("drag-over");
+          });
+          col.addEventListener("dragleave", () => col.classList.remove("drag-over"));
+          col.addEventListener("drop", (e) => {
+            e.preventDefault();
+            col.classList.remove("drag-over");
+            const id = Number(e.dataTransfer.getData("text/plain"));
+            const status = col.dataset.status;
+            const task = tasks.find(t => t.id === id);
+            if (task && task.status !== status) {
+              task.status = status;
+              task.completed = status === "done";
+              addFeed("info", `Task <strong>${esc(task.title)}</strong> moved to <strong>${status}</strong>`);
+              save(); renderAll();
+              toast("Task moved");
+            }
+          });
+        });
+      }
+
+      // ============ RENDER: CALENDAR ============
+      function renderCalendar() {
+        const year = calDate.getFullYear();
+        const month = calDate.getMonth();
+        const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        $("calMonth").textContent = `${monthNames[month]} ${year}`;
+
+        // Day of week headers
+        const dows = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        $("calDow").innerHTML = dows.map(d => `<div class="cal-dow">${d}</div>`).join("");
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const prevDays = new Date(year, month, 0).getDate();
+        const todayStr = today();
+
+        let html = "";
+        // Previous month
+        for (let i = firstDay - 1; i >= 0; i--) {
+          const d = prevDays - i;
+          html += `<div class="cal-day other"><div class="cal-day-num">${d}</div></div>`;
+        }
+        // Current month
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+          const dayTasks = tasks.filter(t => t.due === dateStr);
+          const isToday = dateStr === todayStr;
+          const tasksHTML = dayTasks.slice(0, 3).map(t => `
+            <div class="cal-task ${t.priority}" title="${esc(t.title)}">${esc(t.title)}</div>
+          `).join("");
+          const more = dayTasks.length > 3 ? `<div class="cal-more">+${dayTasks.length - 3} more</div>` : "";
+          html += `<div class="cal-day ${isToday ? "today" : ""}" data-date="${dateStr}">
+            <div class="cal-day-num">${d}</div>
+            ${tasksHTML}${more}
+          </div>`;
+        }
+        // Next month
+        const totalCells = firstDay + daysInMonth;
+        const remaining = (7 - (totalCells % 7)) % 7;
+        for (let d = 1; d <= remaining; d++) {
+          html += `<div class="cal-day other"><div class="cal-day-num">${d}</div></div>`;
+        }
+
+        $("calDays").innerHTML = html;
+
+        // Click day to open new task with date prefilled
+        document.querySelectorAll(".cal-day:not(.other)").forEach(el => {
+          el.addEventListener("click", () => {
+            openModal(null, el.dataset.date);
+          });
+        });
+      }
+
+      // ============ RENDER: UPCOMING ============
+      function renderUpcoming() {
+        const upcoming = tasks
+          .filter(t => !t.completed)
+          .sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999"))
+          .slice(0, 12);
+
+        const grid = $("upcomingGrid");
+        if (upcoming.length === 0) {
+          grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><i class="fas fa-calendar-check"></i><h4>No upcoming tasks</h4><p>You're all caught up!</p></div>`;
+          return;
+        }
+
+        grid.innerHTML = upcoming.map(t => {
+          const d = t.due ? new Date(t.due) : null;
+          const dateStr = d && !isNaN(d)
+            ? d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+            : "No date";
+          const overdue = isOverdue(t);
+          return `
+            <div class="card" style="border-left:4px solid var(--${t.priority === "high" ? "danger" : t.priority === "medium" ? "warning" : "success"});cursor:pointer;" data-action="edit" data-id="${t.id}">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:${overdue ? "var(--danger)" : "var(--text-soft)"};letter-spacing:0.06em;margin-bottom:8px;">
+                <i class="far fa-calendar"></i> ${overdue ? "Overdue · " : ""}${dateStr}
+              </div>
+              <div style="font-size:14px;font-weight:600;margin-bottom:10px;line-height:1.4;">${esc(t.title)}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--text-soft);">
+                <span><i class="fas fa-tag"></i> ${esc(t.tags || "General")}</span>
+                <span class="chip ${t.priority}">${t.priority}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // ============ RENDER: ANALYTICS ============
+      function renderAnalytics() {
+        const total = tasks.length || 1;
+        const completed = tasks.filter(t => t.completed).length;
+        const active = tasks.filter(t => !t.completed && !isOverdue(t)).length;
+        const overdue = tasks.filter(isOverdue).length;
+        const pc = (n) => Math.round((n / total) * 100);
+
+        $("anCompleted").textContent = pc(completed) + "%";
+        $("anActive").textContent = pc(active) + "%";
+        $("anOverdue").textContent = pc(overdue) + "%";
+        $("barCompleted").style.width = pc(completed) + "%";
+        $("barActive").style.width = pc(active) + "%";
+        $("barOverdue").style.width = pc(overdue) + "%";
+
+        const high = tasks.filter(t => t.priority === "high").length;
+        const med = tasks.filter(t => t.priority === "medium").length;
+        const low = tasks.filter(t => t.priority === "low").length;
+        const max = Math.max(high, med, low, 1);
+        $("anHighCount").textContent = high;
+        $("anMedCount").textContent = med;
+        $("anLowCount").textContent = low;
+        $("barHigh").style.width = (high / max) * 100 + "%";
+        $("barMed").style.width = (med / max) * 100 + "%";
+        $("barLow").style.width = (low / max) * 100 + "%";
+      }
+
+      // ============ RENDER: TAGS ============
+      function renderTags() {
+        const map = {};
+        tasks.forEach(t => {
+          const tag = t.tags || "General";
+          map[tag] = (map[tag] || 0) + 1;
+        });
+        const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]);
+        const max = sorted[0] ? sorted[0][1] : 1;
+        const colors = ["var(--brand)", "var(--success)", "var(--warning)", "var(--danger)", "var(--info)", "var(--purple)"];
+
+        $("tagsGrid").innerHTML = sorted.map(([name, count], i) => `
+          <div class="tag-card" data-tag="${esc(name)}">
+            <div class="tag-name"><span class="tag-dot" style="background:${colors[i % colors.length]}"></span> ${esc(name)}</div>
+            <div class="tag-bar"><div style="width:${(count / max) * 100}%;background:${colors[i % colors.length]}"></div></div>
+            <div class="tag-count"><span>${count} task${count !== 1 ? "s" : ""}</span><span>${Math.round((count / tasks.length) * 100)}%</span></div>
+          </div>
+        `).join("") || `<div class="empty" style="grid-column:1/-1;"><i class="fas fa-tags"></i><h4>No tags yet</h4><p>Add tags to your tasks to see them here</p></div>`;
+
+        // Click to filter
+        document.querySelectorAll(".tag-card").forEach(card => {
+          card.addEventListener("click", () => {
+            $("searchInput").value = card.dataset.tag;
+            searchQuery = card.dataset.tag;
+            setView("tasks");
+          });
+        });
+      }
+
+      // ============ RENDER: ACTIVITY ============
+      function renderActivity() {
+        const feedIconMap = { success: "green", info: "blue", warning: "amber", purple: "purple", red: "red" };
+        const feedIconFa = { success: "fa-check", info: "fa-plus", warning: "fa-exclamation", purple: "fa-tag", red: "fa-trash" };
+        $("fullFeed").innerHTML = feed.map(f => `
+          <div class="feed-item">
+            <div class="feed-icon ${feedIconMap[f.type] || "blue"}"><i class="fas ${feedIconFa[f.type] || "fa-circle"}"></i></div>
+            <div class="feed-body">
+              <div class="feed-text">${f.text}</div>
+              <div class="feed-time">${f.time}</div>
+            </div>
+          </div>
+        `).join("") || `<div class="empty"><i class="fas fa-clock-rotate-left"></i><h4>No activity yet</h4><p>Your actions will appear here</p></div>`;
+      }
+
+      // ============ RENDER ALL ============
+      function renderAll() {
+        renderDashboard();
+        renderFullTasks();
+        renderKanban();
+        renderCalendar();
+        renderUpcoming();
+        renderAnalytics();
+        renderTags();
+        renderActivity();
+
+        $("navTaskCount").textContent = tasks.filter(t => !t.completed).length;
+        $("navOverdue").textContent = tasks.filter(isOverdue).length;
+
+        refreshCharts();
+      }
+
+      // ============ VIEW SWITCHING ============
+      const viewMeta = {
+        dashboard: { title: "Dashboard", subtitle: "Overview of your productivity" },
+        tasks: { title: "My Tasks", subtitle: "Manage all your tasks" },
+        kanban: { title: "Kanban Board", subtitle: "Drag & drop task management" },
+        calendar: { title: "Calendar", subtitle: "Tasks by due date" },
+        upcoming: { title: "Upcoming", subtitle: "Tasks that need your attention" },
+        analytics: { title: "Analytics", subtitle: "Your productivity insights" },
+        tags: { title: "Tags", subtitle: "Organize with categories" },
+        activity: { title: "Activity", subtitle: "Recent changes" },
+        settings: { title: "Settings", subtitle: "Manage your preferences" }
+      };
+
+      function setView(view) {
+        activeView = view;
+        document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+        const el = $("view-" + view);
+        if (el) el.classList.add("active");
+
+        document.querySelectorAll(".nav-item").forEach(n => {
+          n.classList.toggle("active", n.dataset.view === view);
+        });
+
+        const meta = viewMeta[view] || viewMeta.dashboard;
+        $("pageTitle").textContent = meta.title;
+        $("pageSubtitle").textContent = meta.subtitle;
+
+        if (view === "dashboard" || view === "analytics") {
+          setTimeout(refreshCharts, 60);
+        }
+        if (view === "calendar") renderCalendar();
+
+        if (window.innerWidth <= 860) closeSidebar();
+      }
+
+      // ============ TASK ACTIONS ============
+      function toggleTask(id) {
+        const t = tasks.find(x => x.id === id);
+        if (!t) return;
+        t.completed = !t.completed;
+        if (t.completed) t.status = "done";
+        else if (t.status === "done") t.status = "todo";
+        addFeed(t.completed ? "success" : "info",
+          t.completed ? `Task <strong>${esc(t.title)}</strong> completed` : `Task <strong>${esc(t.title)}</strong> reopened`);
+        save(); renderAll();
+        toast(t.completed ? "Task completed" : "Task reopened");
+      }
+
+      function deleteTask(id) {
+        const t = tasks.find(x => x.id === id);
+        if (!t) return;
+        if (!confirm(`Delete "${t.title}"?`)) return;
+        tasks = tasks.filter(x => x.id !== id);
+        selectedIds.delete(id);
+        addFeed("red", `Task <strong>${esc(t.title)}</strong> deleted`);
+        save(); renderAll();
+        toast("Task deleted");
+      }
+
+      function starTask(id) {
+        const t = tasks.find(x => x.id === id);
+        if (!t) return;
+        t.starred = !t.starred;
+        save(); renderAll();
+        toast(t.starred ? "Task starred" : "Star removed");
+      }
+
+      function openModal(task, prefillDate) {
+        editingId = task ? task.id : null;
+        $("modalTitle").textContent = task ? "Edit task" : "New task";
+        $("fTitle").value = task ? task.title : "";
+        $("fDesc").value = task ? task.desc || "" : "";
+        $("fTags").value = task ? task.tags || "" : "";
+        $("fPriority").value = task ? task.priority : "medium";
+        $("fDue").value = task ? task.due : (prefillDate || today());
+        $("fStatus").value = task ? (task.status || "todo") : "todo";
+        $("modalBg").classList.add("open");
+        setTimeout(() => $("fTitle").focus(), 100);
+      }
+
+      function closeModal() {
+        $("modalBg").classList.remove("open");
+        editingId = null;
+      }
+
+      // ============ EVENT DELEGATION ============
+      document.addEventListener("click", (e) => {
+        const target = e.target.closest("[data-action]");
+        if (!target) return;
+        const action = target.dataset.action;
+        const id = Number(target.dataset.id);
+        if (action === "toggle") toggleTask(id);
+        else if (action === "edit") {
+          const t = tasks.find(x => x.id === id);
+          if (t) openModal(t);
+        }
+        else if (action === "delete") deleteTask(id);
+        else if (action === "star") starTask(id);
+        else if (action === "select") {
+          if (selectedIds.has(id)) selectedIds.delete(id);
+          else selectedIds.add(id);
+          renderFullTasks();
+        }
+      });
+
+      // Nav
+      document.querySelectorAll(".nav-item[data-view]").forEach(item => {
+        item.addEventListener("click", () => setView(item.dataset.view));
+      });
+
+      // data-goto
+      document.addEventListener("click", (e) => {
+        const go = e.target.closest("[data-goto]");
+        if (go) setView(go.dataset.goto);
+      });
+
+      // Tabs
+      document.querySelectorAll("#taskTabs .tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll("#taskTabs .tab").forEach(t => t.classList.remove("active"));
+          tab.classList.add("active");
+          currentFilter = tab.dataset.filter;
+          renderFullTasks();
+        });
+      });
+
+      // Sort button
+      $("sortBtn").addEventListener("click", () => {
+        const modes = ["due", "priority", "title", "created"];
+        const labels = { due: "Sort: Due date", priority: "Sort: Priority", title: "Sort: Title", created: "Sort: Newest" };
+        const idx = modes.indexOf(sortMode);
+        sortMode = modes[(idx + 1) % modes.length];
+        $("sortBtn").innerHTML = `<i class="fas fa-arrow-down-wide-short"></i> ${labels[sortMode]}`;
+        renderFullTasks();
+      });
+
+      // Select mode
+      $("selectBtn").addEventListener("click", () => {
+        selectMode = !selectMode;
+        $("selectBtn").classList.toggle("active", selectMode);
+        if (!selectMode) selectedIds.clear();
+        renderFullTasks();
+      });
+
+      // New task
+      $("newTaskBtn").addEventListener("click", () => openModal(null));
+      $("newTaskBtnK").addEventListener("click", () => openModal(null));
+      $("modalClose").addEventListener("click", closeModal);
+      $("modalCancel").addEventListener("click", closeModal);
+      $("modalBg").addEventListener("click", (e) => {
+        if (e.target === $("modalBg")) closeModal();
+      });
+
+      // Form submit
+      $("taskForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const title = $("fTitle").value.trim();
+        if (!title) return;
+        const data = {
+          title,
+          desc: $("fDesc").value.trim(),
+          tags: $("fTags").value.trim() || "General",
+          priority: $("fPriority").value,
+          due: $("fDue").value || today(),
+          status: $("fStatus").value
+        };
+        if (editingId) {
+          const t = tasks.find(x => x.id === editingId);
+          if (t) {
+            Object.assign(t, data);
+            t.completed = data.status === "done";
+            addFeed("info", `Task <strong>${esc(title)}</strong> updated`);
+          }
+          toast("Task updated");
+        } else {
+          tasks.unshift({ id: uid(), completed: data.status === "done", starred: false, ...data });
+          addFeed("info", `New task <strong>${esc(title)}</strong> created`);
+          toast("Task added");
+        }
+        save(); renderAll();
+        closeModal();
+      });
+
+      // Bulk actions
+      document.querySelectorAll("[data-bulk]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const action = btn.dataset.bulk;
+          const ids = Array.from(selectedIds);
+          if (ids.length === 0) return;
+
+          if (action === "complete") {
+            ids.forEach(id => {
+              const t = tasks.find(x => x.id === id);
+              if (t) { t.completed = true; t.status = "done"; }
+            });
+            addFeed("success", `${ids.length} task${ids.length > 1 ? "s" : ""} marked complete`);
+            toast(`${ids.length} tasks completed`);
+          } else if (action === "star") {
+            ids.forEach(id => {
+              const t = tasks.find(x => x.id === id);
+              if (t) t.starred = true;
+            });
+            toast(`${ids.length} tasks starred`);
+          } else if (action === "high") {
+            ids.forEach(id => {
+              const t = tasks.find(x => x.id === id);
+              if (t) t.priority = "high";
+            });
+            toast(`Priority updated`);
+          } else if (action === "delete") {
+            if (!confirm(`Delete ${ids.length} tasks?`)) return;
+            tasks = tasks.filter(t => !ids.includes(t.id));
+            addFeed("red", `${ids.length} tasks deleted`);
+            toast(`${ids.length} tasks deleted`);
+          }
+          selectedIds.clear();
+          save(); renderAll();
+        });
+      });
+
+      // Search
+      $("searchInput").addEventListener("input", (e) => {
+        searchQuery = e.target.value.trim();
+        if (activeView !== "tasks") setView("tasks");
+        else renderFullTasks();
+      });
+
+      // Sidebar mobile
+      function openSidebar() { $("sidebar").classList.add("open"); $("overlay").classList.add("on"); }
+      function closeSidebar() { $("sidebar").classList.remove("open"); $("overlay").classList.remove("on"); }
+      $("menuBtn").addEventListener("click", openSidebar);
+      $("overlay").addEventListener("click", closeSidebar);
+      window.addEventListener("resize", () => { if (window.innerWidth > 860) closeSidebar(); });
+
+      // Switches
+      document.querySelectorAll("[data-switch]").forEach(sw => {
+        sw.addEventListener("click", () => sw.classList.toggle("on"));
+      });
+
+      // Calendar navigation
+      $("calPrev").addEventListener("click", () => { calDate.setMonth(calDate.getMonth() - 1); renderCalendar(); });
+      $("calNext").addEventListener("click", () => { calDate.setMonth(calDate.getMonth() + 1); renderCalendar(); });
+      $("calToday").addEventListener("click", () => { calDate = new Date(); renderCalendar(); });
+
+      // ============ THEME ============
+      function applyTheme(dark) {
+        document.body.classList.toggle("dark", dark);
+        const icon = dark ? "fa-sun" : "fa-moon";
+        $("themeBtn").innerHTML = `<i class="fas ${icon}"></i>`;
+        document.querySelector("#themeNavItem i").className = `fas ${icon}`;
+        $("themeSwitch").classList.toggle("on", dark);
+        if (window.weeklyChart && window.priorityChart) updateChartColors();
+        if (window.trendChart && window.rateChart) updateChartColors();
+      }
+
+      $("themeBtn").addEventListener("click", () => {
+        const dark = !document.body.classList.contains("dark");
+        applyTheme(dark);
+        localStorage.setItem("tf-theme", dark ? "dark" : "light");
+      });
+      $("themeNavItem").addEventListener("click", () => {
+        const dark = !document.body.classList.contains("dark");
+        applyTheme(dark);
+        localStorage.setItem("tf-theme", dark ? "dark" : "light");
+      });
+      $("themeSwitch").addEventListener("click", () => {
+        const dark = !document.body.classList.contains("dark");
+        applyTheme(dark);
+        localStorage.setItem("tf-theme", dark ? "dark" : "light");
+      });
+
+      applyTheme(localStorage.getItem("tf-theme") === "dark");
+
+      // ============ NOTIFICATIONS ============
+      $("notifBtn").addEventListener("click", () => toast("You have 3 notifications"));
+
+      // ============ COMMAND PALETTE ============
+      const commands = [
+        { icon: "fa-grid-2", label: "Go to Dashboard", action: () => setView("dashboard"), kbd: "G D" },
+        { icon: "fa-list-check", label: "Go to My Tasks", action: () => setView("tasks"), kbd: "G T" },
+        { icon: "fa-columns", label: "Go to Kanban Board", action: () => setView("kanban"), kbd: "G K" },
+        { icon: "fa-calendar", label: "Go to Calendar", action: () => setView("calendar"), kbd: "G C" },
+        { icon: "fa-chart-simple", label: "Go to Analytics", action: () => setView("analytics"), kbd: "G A" },
+        { icon: "fa-tags", label: "Go to Tags", action: () => setView("tags") },
+        { icon: "fa-gear", label: "Open Settings", action: () => setView("settings") },
+        { icon: "fa-plus", label: "Create new task", action: () => openModal(null), kbd: "N" },
+        { icon: "fa-moon", label: "Toggle dark mode", action: () => { applyTheme(!document.body.classList.contains("dark")); } },
+        { icon: "fa-check", label: "Complete all overdue tasks", action: () => {
+            tasks.filter(isOverdue).forEach(t => { t.completed = true; t.status = "done"; });
+            save(); renderAll(); toast("Overdue tasks completed");
+          } },
+        { icon: "fa-trash", label: "Delete all completed tasks", action: () => {
+            const n = tasks.filter(t => t.completed).length;
+            if (!confirm(`Delete ${n} completed tasks?`)) return;
+            tasks = tasks.filter(t => !t.completed);
+            save(); renderAll(); toast(`${n} tasks deleted`);
+          } },
+        { icon: "fa-star", label: "Show starred tasks", action: () => {
+            currentFilter = "starred";
+            setView("tasks");
+            document.querySelectorAll("#taskTabs .tab").forEach(t => t.classList.toggle("active", t.dataset.filter === "starred"));
+            renderFullTasks();
+          } }
+      ];
+
+      function openCmd() {
+        $("cmdBg").classList.add("open");
+        $("cmdInput").value = "";
+        renderCmdList(commands);
+        setTimeout(() => $("cmdInput").focus(), 80);
+      }
+      function closeCmd() { $("cmdBg").classList.remove("open"); }
+
+      function renderCmdList(items) {
+        $("cmdList").innerHTML = items.map((c, i) => `
+          <div class="cmd-item ${i === 0 ? "selected" : ""}" data-cmd="${i}">
+            <i class="fas ${c.icon}"></i>
+            <span>${c.label}</span>
+            ${c.kbd ? `<span class="kbd">${c.kbd}</span>` : ""}
+          </div>
+        `).join("") || `<div class="cmd-item" style="justify-content:center;color:var(--text-soft);">No commands found</div>`;
+      }
+
+      $("cmdBtn").addEventListener("click", openCmd);
+      $("cmdNavItem").addEventListener("click", openCmd);
+      $("cmdBg").addEventListener("click", (e) => { if (e.target === $("cmdBg")) closeCmd(); });
+
+      $("cmdInput").addEventListener("input", (e) => {
+        const q = e.target.value.toLowerCase();
+        const filtered = commands.filter(c => c.label.toLowerCase().includes(q));
+        renderCmdList(filtered);
+      });
+
+      $("cmdList").addEventListener("click", (e) => {
+        const item = e.target.closest(".cmd-item");
+        if (!item || !item.dataset.cmd) return;
+        const idx = Number(item.dataset.cmd);
+        const visibleCmds = commands.filter(c => {
+          const q = $("cmdInput").value.toLowerCase();
+          return c.label.toLowerCase().includes(q);
+        });
+        if (visibleCmds[idx]) {
+          visibleCmds[idx].action();
+          closeCmd();
+        }
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", (e) => {
+        const mod = e.metaKey || e.ctrlKey;
+        if (mod && e.key === "k") {
+          e.preventDefault();
+          openCmd();
+          return;
+        }
+        if (e.key === "Escape") {
+          if ($("cmdBg").classList.contains("open")) closeCmd();
+          else if ($("modalBg").classList.contains("open")) closeModal();
+        }
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+        if (e.key === "n" || e.key === "N") { e.preventDefault(); openModal(null); }
+        if (e.key === "g") {
+          window._gPressed = true;
+          setTimeout(() => window._gPressed = false, 800);
+        }
+        if (window._gPressed) {
+          const map = { d: "dashboard", t: "tasks", k: "kanban", c: "calendar", a: "analytics", s: "settings" };
+          const view = map[e.key.toLowerCase()];
+          if (view) { setView(view); window._gPressed = false; }
+        }
+      });
+
+      // ============ CHARTS ============
+      function chartColors() {
+        const dark = document.body.classList.contains("dark");
+        return {
+          text: dark ? "#94a3b8" : "#64748b",
+          grid: dark ? "#232d43" : "#e8edf3",
+          brand: dark ? "#818cf8" : "#6366f1",
+          fill: dark ? "rgba(129,140,248,0.1)" : "rgba(99,102,241,0.08)"
+        };
+      }
+
+      function buildCharts() {
+        const c = chartColors();
+        const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+
+        window.weeklyChart = new Chart($("chartWeekly"), {
+          type: "line",
+          data: {
+            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            datasets: [{
+              data: [2, 4, 3, 6, 5, 7, 4],
+              borderColor: c.brand,
+              backgroundColor: c.fill,
+              borderWidth: 2.5,
+              tension: 0.4,
+              fill: true,
+              pointBackgroundColor: c.brand,
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            }]
+          },
+          options: {
+            ...common,
+            scales: {
+              y: { beginAtZero: true, grid: { color: c.grid, drawBorder: false }, ticks: { color: c.text, stepSize: 2, font: { size: 11 } } },
+              x: { grid: { display: false }, ticks: { color: c.text, font: { size: 11 } } }
+            }
+          }
+        });
+
+        window.priorityChart = new Chart($("chartPriority"), {
+          type: "doughnut",
+          data: {
+            labels: ["High", "Medium", "Low"],
+            datasets: [{
+              data: [3, 5, 4],
+              backgroundColor: ["#ef4444", "#f59e0b", "#10b981"],
+              borderWidth: 0,
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            ...common,
+            cutout: "70%",
+            plugins: {
+              legend: { display: true, position: "bottom", labels: { color: c.text, usePointStyle: true, boxWidth: 8, padding: 14, font: { size: 11, weight: "500" } } }
+            }
+          }
+        });
+
+        window.trendChart = new Chart($("chartTrend"), {
+          type: "bar",
+          data: {
+            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            datasets: [{
+              data: [3, 5, 4, 7, 6, 4, 3],
+              backgroundColor: c.brand,
+              borderRadius: 6,
+              barThickness: 22
+            }]
+          },
+          options: {
+            ...common,
+            scales: {
+              y: { beginAtZero: true, grid: { color: c.grid, drawBorder: false }, ticks: { color: c.text, stepSize: 2, font: { size: 11 } } },
+              x: { grid: { display: false }, ticks: { color: c.text, font: { size: 11 } } }
+            }
+          }
+        });
+
+        window.rateChart = new Chart($("chartRate"), {
+          type: "line",
+          data: {
+            labels: ["W1", "W2", "W3", "W4", "W5", "W6"],
+            datasets: [{
+              data: [45, 52, 48, 65, 72, 78],
+              borderColor: "#10b981",
+              backgroundColor: "rgba(16,185,129,0.1)",
+              borderWidth: 2.5,
+              tension: 0.4,
+              fill: true,
+              pointBackgroundColor: "#10b981",
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+              pointRadius: 4
+            }]
+          },
+          options: {
+            ...common,
+            scales: {
+              y: { beginAtZero: true, max: 100, grid: { color: c.grid, drawBorder: false }, ticks: { color: c.text, callback: v => v + "%", font: { size: 11 } } },
+              x: { grid: { display: false }, ticks: { color: c.text, font: { size: 11 } } }
+            }
+          }
+        });
+      }
+
+      function refreshCharts() {
+        if (!window.weeklyChart) return;
+
+        // Weekly
+        const counts = [0, 0, 0, 0, 0, 0, 0];
+        tasks.filter(t => t.completed && t.due).forEach(t => {
+          const d = new Date(t.due);
+          if (!isNaN(d)) {
+            const day = d.getDay();
+            const idx = day === 0 ? 6 : day - 1;
+            counts[idx]++;
+          }
+        });
+        if (counts.reduce((a, b) => a + b, 0) > 0) window.weeklyChart.data.datasets[0].data = counts;
+
+        // Priority
+        const high = tasks.filter(t => t.priority === "high").length;
+        const med = tasks.filter(t => t.priority === "medium").length;
+        const low = tasks.filter(t => t.priority === "low").length;
+        window.priorityChart.data.datasets[0].data = [high, med, low];
+
+        window.weeklyChart.update("none");
+        window.priorityChart.update("none");
+        if (window.trendChart) window.trendChart.update("none");
+        if (window.rateChart) window.rateChart.update("none");
+      }
+
+      function updateChartColors() {
+        const c = chartColors();
+        if (window.weeklyChart) {
+          window.weeklyChart.data.datasets[0].borderColor = c.brand;
+          window.weeklyChart.data.datasets[0].backgroundColor = c.fill;
+          window.weeklyChart.data.datasets[0].pointBackgroundColor = c.brand;
+          window.weeklyChart.options.scales.y.grid.color = c.grid;
+          window.weeklyChart.options.scales.y.ticks.color = c.text;
+          window.weeklyChart.options.scales.x.ticks.color = c.text;
+          window.weeklyChart.update("none");
+        }
+        if (window.priorityChart) {
+          window.priorityChart.options.plugins.legend.labels.color = c.text;
+          window.priorityChart.update("none");
+        }
+        if (window.trendChart) {
+          window.trendChart.data.datasets[0].backgroundColor = c.brand;
+          window.trendChart.options.scales.y.grid.color = c.grid;
+          window.trendChart.options.scales.y.ticks.color = c.text;
+          window.trendChart.options.scales.x.ticks.color = c.text;
+          window.trendChart.update("none");
+        }
+        if (window.rateChart) {
+          window.rateChart.options.scales.y.grid.color = c.grid;
+          window.rateChart.options.scales.y.ticks.color = c.text;
+          window.rateChart.options.scales.x.ticks.color = c.text;
+          window.rateChart.update("none");
+        }
+      }
+
+      // ============ INIT ============
+      function init() {
+        load();
+        setView("dashboard");
+        renderAll();
+        buildCharts();
+        setTimeout(() => { updateChartColors(); refreshCharts(); }, 100);
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
